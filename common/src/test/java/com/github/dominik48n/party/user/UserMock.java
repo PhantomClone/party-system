@@ -19,6 +19,8 @@ package com.github.dominik48n.party.user;
 import com.github.dominik48n.party.api.player.PartyPlayer;
 import java.util.Optional;
 import java.util.UUID;
+
+import com.github.dominik48n.party.api.player.PartyPlayerSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,16 +28,19 @@ public class UserMock implements PartyPlayer {
 
     private final @NotNull UUID uniqueId;
     private final @NotNull String name;
+    private final @NotNull PartyPlayerSettings playerSettings;
     private final @NotNull UserManager<UserMock> userManager;
     private @Nullable UUID partyId;
 
     public UserMock(
             final @NotNull UUID uniqueId,
             final @NotNull String name,
+            final @NotNull PartyPlayerSettings playerSettings,
             final @NotNull UserManager<UserMock> userManager
     ) {
         this.uniqueId = uniqueId;
         this.name = name;
+        this.playerSettings = playerSettings;
         this.userManager = userManager;
         this.partyId = null;
 
@@ -50,6 +55,11 @@ public class UserMock implements PartyPlayer {
     @Override
     public @NotNull String name() {
         return this.name;
+    }
+
+    @Override
+    public @NotNull PartyPlayerSettings partyPlayerSettings() {
+        return this.playerSettings;
     }
 
     @Override

@@ -25,6 +25,9 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.dominik48n.party.api.player.PartyPlayer;
+import com.github.dominik48n.party.api.player.PartyPlayerSettings;
+import com.github.dominik48n.party.user.PartyPlayerSettingsDeserializer;
+import com.github.dominik48n.party.user.PartyPlayerSettingsSerializer;
 import com.github.dominik48n.party.user.UserDeserializer;
 import com.github.dominik48n.party.user.UserSerializer;
 import com.google.common.collect.Sets;
@@ -50,6 +53,8 @@ public class Document {
             .registerModule(new SimpleModule()
                     .addSerializer(PartyPlayer.class, new UserSerializer(PartyPlayer.class))
                     .addDeserializer(PartyPlayer.class, new UserDeserializer())
+                    .addSerializer(PartyPlayerSettings.class, new PartyPlayerSettingsSerializer(PartyPlayerSettings.class))
+                    .addDeserializer(PartyPlayerSettings.class, new PartyPlayerSettingsDeserializer())
             );
 
     static @NotNull Document read(final File file) throws IOException {

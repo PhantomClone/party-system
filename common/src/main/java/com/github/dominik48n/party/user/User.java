@@ -21,6 +21,8 @@ import com.github.dominik48n.party.api.PartyAPI;
 import com.github.dominik48n.party.api.player.PartyPlayer;
 import java.util.Optional;
 import java.util.UUID;
+
+import com.github.dominik48n.party.api.player.PartyPlayerSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,13 +32,15 @@ public class User<TUser> implements PartyPlayer {
     private final @NotNull TUser user;
     private final @NotNull UUID uniqueId;
     private final @NotNull String name;
+    private final @NotNull PartyPlayerSettings partyPlayerSettings;
     private final int memberLimit;
 
     private @Nullable UUID partyId;
 
-    public User(final @NotNull TUser user, final @NotNull UserManager<TUser> userManager) {
+    public User(final @NotNull TUser user, final @NotNull UserManager<TUser> userManager, final @NotNull PartyPlayerSettings partyPlayerSettings) {
         this.user = user;
         this.userManager = userManager;
+        this.partyPlayerSettings = partyPlayerSettings;
         this.uniqueId = userManager.playerUUID(user);
         this.name = userManager.playerName(user);
         this.memberLimit = userManager.memberLimit(this.user);
@@ -57,6 +61,11 @@ public class User<TUser> implements PartyPlayer {
     @Override
     public @NotNull String name() {
         return this.name;
+    }
+
+    @Override
+    public @NotNull PartyPlayerSettings partyPlayerSettings() {
+        return this.partyPlayerSettings;
     }
 
     @Override

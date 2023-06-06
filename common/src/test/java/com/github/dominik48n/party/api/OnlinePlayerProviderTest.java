@@ -19,6 +19,7 @@ package com.github.dominik48n.party.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.dominik48n.party.api.player.OnlinePlayerProvider;
 import com.github.dominik48n.party.api.player.PartyPlayer;
+import com.github.dominik48n.party.api.player.PartyPlayerSettings;
 import com.github.dominik48n.party.config.Document;
 import com.github.dominik48n.party.redis.RedisManager;
 import com.github.dominik48n.party.user.UserManager;
@@ -61,6 +62,9 @@ public class OnlinePlayerProviderTest {
     @Mock
     private Jedis jedis;
 
+    @Mock
+    private PartyPlayerSettings playerSettings;
+
     private AutoCloseable mocks;
 
     @BeforeEach
@@ -78,7 +82,7 @@ public class OnlinePlayerProviderTest {
 
     @Test
     public void testGetByUsername() throws JsonProcessingException {
-        final PartyPlayer partyPlayer = new UserMock(this.uniqueId, this.username, this.userManager);
+        final PartyPlayer partyPlayer = new UserMock(this.uniqueId, this.username, this.playerSettings, this.userManager);
 
         final Set<String> keys = new HashSet<>();
         keys.add(this.playerKey);
@@ -93,7 +97,7 @@ public class OnlinePlayerProviderTest {
 
     @Test
     public void testGetByUniqueId() throws JsonProcessingException {
-        final PartyPlayer partyPlayer = new UserMock(this.uniqueId, this.username, this.userManager);
+        final PartyPlayer partyPlayer = new UserMock(this.uniqueId, this.username, this.playerSettings, this.userManager);
         final String jsonString = Document.MAPPER.writeValueAsString(partyPlayer);
         when(this.jedis.get(this.playerKey)).thenReturn(jsonString);
 
@@ -120,7 +124,7 @@ public class OnlinePlayerProviderTest {
 
     @Test
     public void testGetByUniqueIds() throws JsonProcessingException {
-        final PartyPlayer partyPlayer = new UserMock(this.uniqueId, this.username, this.userManager);
+        final PartyPlayer partyPlayer = new UserMock(this.uniqueId, this.username, this.playerSettings, this.userManager);
 
         final List<UUID> uniqueIds = Collections.singletonList(this.uniqueId);
         final String[] keys = {this.playerKey};
@@ -146,7 +150,7 @@ public class OnlinePlayerProviderTest {
 
     @Test
     public void testGetAll() throws JsonProcessingException {
-        final PartyPlayer partyPlayer = new UserMock(this.uniqueId, this.username, this.userManager);
+        final PartyPlayer partyPlayer = new UserMock(this.uniqueId, this.username, this.playerSettings, this.userManager);
 
         final Set<String> keys = new HashSet<>();
         keys.add(this.playerKey);
@@ -169,7 +173,7 @@ public class OnlinePlayerProviderTest {
 
     @Test
     public void testLogin() throws JsonProcessingException {
-        final PartyPlayer partyPlayer = new UserMock(this.uniqueId, this.username, this.userManager);
+        final PartyPlayer partyPlayer = new UserMock(this.uniqueId, this.username, this.playerSettings, this.userManager);
 
         this.onlinePlayerProvider.login(partyPlayer);
 
@@ -178,7 +182,7 @@ public class OnlinePlayerProviderTest {
 
     @Test
     public void testLogoutPlayerLoggedIn() throws JsonProcessingException {
-        final PartyPlayer partyPlayer = new UserMock(this.uniqueId, this.username, this.userManager);
+        final PartyPlayer partyPlayer = new UserMock(this.uniqueId, this.username, this.playerSettings, this.userManager);
         final String jsonString = Document.MAPPER.writeValueAsString(partyPlayer);
         when(this.jedis.get(eq(this.playerKey))).thenReturn(jsonString);
 

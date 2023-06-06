@@ -17,6 +17,7 @@
 package com.github.dominik48n.party.user;
 
 import com.github.dominik48n.party.api.player.PartyPlayer;
+import com.github.dominik48n.party.api.player.PartyPlayerSettings;
 import net.kyori.adventure.text.Component;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,15 +31,18 @@ public class UserManagerTest {
 
     private UserManager<UserMock> userManager;
 
+    private PartyPlayerSettings playerSettings;
+
     @SuppressWarnings("unchecked")
     @BeforeEach
     public void setup() {
         this.userManager = Mockito.mock(UserManager.class);
+        this.playerSettings = Mockito.mock(PartyPlayerSettings.class);
     }
 
     @Test
     public void testGetPlayer() {
-        final UserMock userMock = new UserMock(UUID.randomUUID(), "Dominik48N", this.userManager);
+        final UserMock userMock = new UserMock(UUID.randomUUID(), "Dominik48N", this.playerSettings, this.userManager);
 
         final PartyPlayer expectedPlayer = Mockito.mock(PartyPlayer.class);
         Mockito.when(this.userManager.getPlayer(userMock)).thenReturn(Optional.of(expectedPlayer));
@@ -62,7 +66,7 @@ public class UserManagerTest {
 
     @Test
     public void testRemovePlayerFromCache() {
-        final UserMock userMock = new UserMock(UUID.randomUUID(), "Dominik48N", this.userManager);
+        final UserMock userMock = new UserMock(UUID.randomUUID(), "Dominik48N", this.playerSettings, this.userManager);
 
         this.userManager.removePlayerFromCache(userMock);
         Mockito.verify(this.userManager).removePlayerFromCache(userMock);

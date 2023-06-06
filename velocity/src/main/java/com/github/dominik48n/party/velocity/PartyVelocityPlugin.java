@@ -19,6 +19,8 @@ package com.github.dominik48n.party.velocity;
 import com.github.dominik48n.party.api.DefaultPartyProvider;
 import com.github.dominik48n.party.api.PartyAPI;
 import com.github.dominik48n.party.config.ProxyPluginConfig;
+import com.github.dominik48n.party.database.JPAService;
+import com.github.dominik48n.party.database.JPAServiceImpl;
 import com.github.dominik48n.party.redis.RedisManager;
 import com.github.dominik48n.party.util.UpdateChecker;
 import com.github.dominik48n.party.velocity.listener.OnlinePlayersListener;
@@ -36,6 +38,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -55,6 +58,7 @@ public class PartyVelocityPlugin {
     private final @NotNull Path dataFolder;
 
     private @NotNull ProxyPluginConfig config;
+    private @Nullable JPAService jpaService;
     private @Nullable RedisManager redisManager;
 
     @Inject
@@ -81,6 +85,22 @@ public class PartyVelocityPlugin {
             }
         }
 
+        this.jpaService = JPAServiceImpl.fromConfig(this.config.getDatabaseConfig());
+        if (jpaService.isEnableFlyway()) {
+            logger().info("Start Flyway.");
+            if (jpaService.runFlyway()) {
+                logger().info("Flyway done.");
+            } else {
+                logger().error("Could not execute Flyway.");
+            }
+        }
+        logger().info("Start JPA.");
+        if (jpaService.startJPA()) {
+            logger().info("JPA started.");
+        } else {
+            logger().error("JPA could not be started.");
+        }
+
         try {
             this.redisManager = new RedisManager(this.config.redisConfig());
             this.logger.info("The connection to Redis has been established.");
@@ -91,7 +111,7 @@ public class PartyVelocityPlugin {
             return;
         }
 
-        final VelocityUserManager userManager = new VelocityUserManager(this.redisManager, this.config, this.server, this.logger);
+        final VelocityUserManager userManager = new VelocityUserManager(this.jpaService, this.redisManager, this.config, this.server, this.logger);
         new DefaultPartyProvider<>(this.redisManager, userManager, this.config.messageConfig());
 
         this.redisManager.subscribes(userManager);
@@ -153,6 +173,11 @@ public class PartyVelocityPlugin {
 
     public @NotNull Logger logger() {
         return this.logger;
+    }
+
+    public JPAService jpaService() {
+        if (this.jpaService == null) throw new IllegalStateException("JPAService isn't initialized.");
+        return this.jpaService;
     }
 
     @NotNull RedisManager redisManager() {

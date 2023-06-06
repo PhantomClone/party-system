@@ -8,6 +8,8 @@ import com.github.dominik48n.party.api.player.PartyPlayer;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
+
+import com.github.dominik48n.party.api.player.PartyPlayerSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,7 +22,8 @@ public class UserDeserializer extends JsonDeserializer<PartyPlayer> {
         final String name = node.get("name").asText();
         final UUID partyId = node.hasNonNull("party_id") ? UUID.fromString(node.get("party_id").asText()) : null;
         final int memberLimit = node.get("member_limit").asInt();
-        return new DeserializedUser(uniqueId, name, partyId, memberLimit);
+        final PartyPlayerSettings playerSettings = ctx.readTreeAsValue(node.get("player_settings"), PartyPlayerSettings.class);
+        return new DeserializedUser(uniqueId, name, partyId, memberLimit, playerSettings);
     }
 
     static class DeserializedUser implements PartyPlayer {
@@ -29,12 +32,14 @@ public class UserDeserializer extends JsonDeserializer<PartyPlayer> {
         private final @NotNull String name;
         private final int memberLimit;
         private @Nullable UUID partyId;
+        private final @NotNull PartyPlayerSettings playerSettings;
 
-        public DeserializedUser(final @NotNull UUID uniqueId, final @NotNull String name, final @Nullable UUID partyId, final int memberLimit) {
+        public DeserializedUser(final @NotNull UUID uniqueId, final @NotNull String name, final @Nullable UUID partyId, final int memberLimit, @NotNull PartyPlayerSettings playerSettings) {
             this.uniqueId = uniqueId;
             this.name = name;
             this.partyId = partyId;
             this.memberLimit = memberLimit;
+            this.playerSettings = playerSettings;
         }
 
         @Override
@@ -45,6 +50,11 @@ public class UserDeserializer extends JsonDeserializer<PartyPlayer> {
         @Override
         public @NotNull String name() {
             return this.name;
+        }
+
+        @Override
+        public @NotNull PartyPlayerSettings partyPlayerSettings() {
+            return this.playerSettings;
         }
 
         @Override

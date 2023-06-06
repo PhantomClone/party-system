@@ -16,6 +16,10 @@
 
 package com.github.dominik48n.party.velocity;
 
+import com.github.dominik48n.party.api.player.PartyPlayer;
+import com.github.dominik48n.party.api.player.PartyPlayerSettings;
+import com.github.dominik48n.party.database.JPAService;
+import com.github.dominik48n.party.user.User;
 import com.github.dominik48n.party.util.Constants;
 import com.github.dominik48n.party.config.MessageConfig;
 import com.github.dominik48n.party.config.ProxyPluginConfig;
@@ -35,12 +39,13 @@ public class VelocityUserManager extends UserManager<Player> {
     private final @NotNull Logger logger;
 
     VelocityUserManager(
+            final @NotNull JPAService jpaService,
             final @NotNull RedisManager redisManager,
             final @NotNull ProxyPluginConfig config,
             final @NotNull ProxyServer server,
             final @NotNull Logger logger
     ) {
-        super(redisManager);
+        super(jpaService, redisManager);
         this.config = config;
         this.server = server;
         this.logger = logger;
@@ -59,6 +64,19 @@ public class VelocityUserManager extends UserManager<Player> {
                 player.createConnectionRequest(server).connect();
             }, () -> this.logger.error("Failed to send {} to {}, because the server is unknown on this proxy.", uniqueId, serverName));
         });
+    }
+
+    @Override
+    public @NotNull PartyPlayer createPartyPlayer(@NotNull Player player) {
+        final PartyPlayerSettings partyPlayerSettings = loadPartyPlayerSettings(player.getUniqueId());
+        return new User<>(player, this, partyPlayerSettings);
+    }
+
+    @Override
+    public void savePartyPlayer(@NotNull Player proxiedPlayer) {
+        getPlayer(proxiedPlayer)
+                .map(PartyPlayer::partyPlayerSettings)
+                .ifPresent(this::savePartyPlayerSettings);
     }
 
     @Override

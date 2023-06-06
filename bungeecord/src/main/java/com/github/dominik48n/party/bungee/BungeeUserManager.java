@@ -16,6 +16,9 @@
 
 package com.github.dominik48n.party.bungee;
 
+import com.github.dominik48n.party.api.player.PartyPlayer;
+import com.github.dominik48n.party.api.player.PartyPlayerSettings;
+import com.github.dominik48n.party.user.User;
 import com.github.dominik48n.party.util.Constants;
 import com.github.dominik48n.party.config.MessageConfig;
 import com.github.dominik48n.party.config.ProxyPluginConfig;
@@ -34,9 +37,22 @@ public class BungeeUserManager extends UserManager<ProxiedPlayer> {
     private final @NotNull PartyBungeePlugin plugin;
 
     BungeeUserManager(final @NotNull PartyBungeePlugin plugin) {
-        super(plugin.redisManager());
+        super(plugin.getJPAService(), plugin.redisManager());
         this.config = plugin.config();
         this.plugin = plugin;
+    }
+
+    @Override
+    public @NotNull PartyPlayer createPartyPlayer(@NotNull ProxiedPlayer player) {
+        final PartyPlayerSettings partyPlayerSettings = loadPartyPlayerSettings(player.getUniqueId());
+        return new User<>(player, this, partyPlayerSettings);
+    }
+
+    @Override
+    public void savePartyPlayer(@NotNull ProxiedPlayer proxiedPlayer) {
+        getPlayer(proxiedPlayer)
+                .map(PartyPlayer::partyPlayerSettings)
+                .ifPresent(this::savePartyPlayerSettings);
     }
 
     @Override

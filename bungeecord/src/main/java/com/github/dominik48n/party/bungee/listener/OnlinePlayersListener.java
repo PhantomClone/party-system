@@ -18,7 +18,7 @@ package com.github.dominik48n.party.bungee.listener;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.dominik48n.party.api.PartyAPI;
-import com.github.dominik48n.party.user.User;
+import com.github.dominik48n.party.api.player.PartyPlayer;
 import com.github.dominik48n.party.user.UserManager;
 import java.util.logging.Level;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -47,18 +47,20 @@ public class OnlinePlayersListener implements Listener {
          * longer depending on what other plugins are on the server. Therefore,
          * this is done asynchronously so as not to burden the login process.
          */
-        this.plugin.getProxy().getScheduler().runAsync(this.plugin, () -> {
-            final User<ProxiedPlayer> user = new User<>(event.getPlayer(), OnlinePlayersListener.this.userManager);
-            try {
-                PartyAPI.get().onlinePlayerProvider().login(user);
-            } catch (final JsonProcessingException e) {
-                OnlinePlayersListener.this.plugin.getLogger().log(
-                        Level.SEVERE,
-                        "Failed to login player " + event.getPlayer().getUniqueId() + ".",
-                        e
-                );
-            }
-        });
+        this.plugin.getProxy().getScheduler().runAsync(this.plugin, () -> handlePostLogin(event.getPlayer()));
+    }
+
+    private void handlePostLogin(ProxiedPlayer player) {
+        final PartyPlayer partyPlayer = this.userManager.createPartyPlayer(player);
+        try {
+            PartyAPI.get().onlinePlayerProvider().login(partyPlayer);
+        } catch (final JsonProcessingException exception) {
+            OnlinePlayersListener.this.plugin.getLogger().log(
+                    Level.SEVERE,
+                    "Failed to login player " +player.getUniqueId() + ".",
+                    exception
+            );
+        }
     }
 
     @EventHandler

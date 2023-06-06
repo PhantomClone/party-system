@@ -40,6 +40,8 @@ public interface PartyPlayer {
      */
     @NotNull String name();
 
+    @NotNull PartyPlayerSettings partyPlayerSettings();
+
     /**
      * Get the member limit what the party would have if the player were the party leader.
      *

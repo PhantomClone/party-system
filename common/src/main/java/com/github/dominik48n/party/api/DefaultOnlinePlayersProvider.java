@@ -40,7 +40,7 @@ public class DefaultOnlinePlayersProvider<TUser> implements OnlinePlayerProvider
     private final @NotNull RedisManager redisManager;
     private final @NotNull UserManager<TUser> userManager;
 
-    public DefaultOnlinePlayersProvider(final @NotNull RedisManager redisManager, final @NotNull UserManager<TUser> userManager) {
+    public DefaultOnlinePlayersProvider( final @NotNull RedisManager redisManager, final @NotNull UserManager<TUser> userManager) {
         this.redisManager = redisManager;
         this.userManager = userManager;
     }

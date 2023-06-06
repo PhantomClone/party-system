@@ -20,6 +20,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.github.dominik48n.party.api.player.PartyPlayer;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.github.dominik48n.party.api.player.PartyPlayerSettings;
+import com.github.dominik48n.party.database.PartyPlayerSettingsImpl;
 import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.util.UUID;
@@ -32,13 +36,16 @@ public class UserSerializationDeserializationTest {
                 UUID.randomUUID(),
                 "Dominik48N",
                 UUID.randomUUID(),
-                8
-        );
+                8,
+                new PartyPlayerSettingsImpl().allowInvitations(true));
+        //TODO
 
         final ObjectMapper objectMapper = new ObjectMapper();
         final SimpleModule module = new SimpleModule();
         module.addSerializer(PartyPlayer.class, new UserSerializer(PartyPlayer.class));
+        module.addSerializer(PartyPlayerSettings.class, new PartyPlayerSettingsSerializer(PartyPlayerSettings.class));
         module.addDeserializer(PartyPlayer.class, new UserDeserializer());
+        module.addDeserializer(PartyPlayerSettings.class, new PartyPlayerSettingsDeserializer());
         objectMapper.registerModule(module);
 
         final String json = objectMapper.writeValueAsString(player);
@@ -48,6 +55,7 @@ public class UserSerializationDeserializationTest {
         assertEquals(player.name(), deserializedPlayer.name());
         assertEquals(player.memberLimit(), deserializedPlayer.memberLimit());
         assertEquals(player.partyId(), deserializedPlayer.partyId());
+        assertTrue(deserializedPlayer.partyPlayerSettings().allowInvitations());
     }
 }
 

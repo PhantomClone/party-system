@@ -34,6 +34,7 @@ public class ProxyPluginConfig {
     private final @NotNull RedisConfig redisConfig;
     private final @NotNull PartyConfig partyConfig;
     private final @NotNull SwitchServerConfig serverSwitchConfig;
+    private final @NotNull DatabaseConfig databaseConfig;
 
     private final boolean updateChecker;
 
@@ -46,6 +47,7 @@ public class ProxyPluginConfig {
         this.messageConfig = MessageConfig.fromDocument(document.getDocument("messages"));
         this.partyConfig = PartyConfig.fromDocument(document.getDocument("party"));
         this.serverSwitchConfig = SwitchServerConfig.fromDocument(document.getDocument("switch_server"));
+        this.databaseConfig = DatabaseConfig.fromDocument(document.getDocument("database"));
 
         this.updateChecker = document.getBoolean("update_checker", true);
     }
@@ -65,6 +67,10 @@ public class ProxyPluginConfig {
         return this.serverSwitchConfig;
     }
 
+    public @NotNull DatabaseConfig getDatabaseConfig() {
+        return databaseConfig;
+    }
+
     public boolean updateChecker() {
         return this.updateChecker;
     }
@@ -76,6 +82,7 @@ public class ProxyPluginConfig {
                 .append("party", this.partyConfig.toDocument())
                 .append("messages", this.messageConfig.toDocument())
                 .append("switch_server", this.serverSwitchConfig.toDocument())
+                .append("database", this.databaseConfig.toDocument())
                 .writeToFile(file);
     }
 }

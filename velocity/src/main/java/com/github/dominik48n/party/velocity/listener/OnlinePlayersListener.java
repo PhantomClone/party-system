@@ -18,8 +18,8 @@ package com.github.dominik48n.party.velocity.listener;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.dominik48n.party.api.PartyAPI;
+import com.github.dominik48n.party.api.player.PartyPlayer;
 import com.github.dominik48n.party.user.UserManager;
-import com.github.dominik48n.party.user.User;
 import com.github.dominik48n.party.velocity.PartyVelocityPlugin;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
@@ -45,14 +45,16 @@ public class OnlinePlayersListener {
          * longer depending on what other plugins are on the server. Therefore,
          * this is done asynchronously so as not to burden the login process.
          */
-        this.plugin.server().getScheduler().buildTask(this.plugin, () -> {
-            final User<Player> user = new User<>(event.getPlayer(), OnlinePlayersListener.this.userManager);
-            try {
-                PartyAPI.get().onlinePlayerProvider().login(user);
-            } catch (final JsonProcessingException e) {
-                OnlinePlayersListener.this.plugin.logger().error("Failed to login player " + event.getPlayer().getUniqueId() + ".", e);
-            }
-        }).schedule();
+        this.plugin.server().getScheduler().buildTask(this.plugin, () -> handlePostLogin(event.getPlayer())).schedule();
+    }
+
+    private void handlePostLogin(Player player) {
+        final PartyPlayer partyPlayer = this.userManager.createPartyPlayer(player);
+        try {
+            PartyAPI.get().onlinePlayerProvider().login(partyPlayer);
+        } catch (final JsonProcessingException exception) {
+            OnlinePlayersListener.this.plugin.logger().error("Failed to login player " + player.getUniqueId() + ".", exception);
+        }
     }
 
     @Subscribe

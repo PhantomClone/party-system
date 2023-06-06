@@ -17,8 +17,11 @@
 package com.github.dominik48n.party.user;
 
 import com.github.dominik48n.party.api.player.PartyPlayer;
+import com.github.dominik48n.party.api.player.PartyPlayerSettings;
 import com.github.dominik48n.party.config.Document;
 import com.github.dominik48n.party.config.MessageConfig;
+import com.github.dominik48n.party.database.JPAService;
+import com.github.dominik48n.party.database.PartyPlayerSettingsImpl;
 import com.github.dominik48n.party.redis.RedisManager;
 import com.github.dominik48n.party.redis.RedisMessageSub;
 import com.google.common.collect.Maps;
@@ -32,9 +35,11 @@ import org.jetbrains.annotations.NotNull;
 public abstract class UserManager<TUser> {
 
     private final @NotNull Map<TUser, PartyPlayer> cachedPlayers = Maps.newConcurrentMap();
+    private final @NotNull JPAService jpaService;
     private final @NotNull RedisManager redisManager;
 
-    protected UserManager(final @NotNull RedisManager redisManager) {
+    protected UserManager(final @NotNull JPAService jpaService, final @NotNull RedisManager redisManager) {
+        this.jpaService = jpaService;
         this.redisManager = redisManager;
     }
 
@@ -60,6 +65,23 @@ public abstract class UserManager<TUser> {
                 new Document().append("unique_id", uniqueId.toString()).append("message", MiniMessage.miniMessage().serialize(component))
         );
     }
+
+    protected PartyPlayerSettings loadPartyPlayerSettings(UUID playerUuid) {
+        return this.jpaService.runInTransaction(entityManager -> PartyPlayerSettingsImpl.ofEntityManager(entityManager, playerUuid));
+    }
+
+    protected void savePartyPlayerSettings(PartyPlayerSettings partyPlayerSettings) {
+        if (partyPlayerSettings instanceof PartyPlayerSettingsImpl playerSettings) {
+            this.jpaService.runInTransaction(playerSettings::save);
+            return;
+        }
+
+        throw new UnsupportedOperationException(String.format("%s is not supported!", partyPlayerSettings.getClass()));
+    }
+
+    public abstract @NotNull PartyPlayer createPartyPlayer(final @NotNull TUser user);
+
+    public abstract void savePartyPlayer(final @NotNull TUser user);
 
     public abstract void sendMessageToLocalUser(final @NotNull UUID uniqueId, final @NotNull Component component);
 

@@ -23,6 +23,8 @@ import com.github.dominik48n.party.bungee.listener.OnlinePlayersListener;
 import com.github.dominik48n.party.bungee.listener.SwitchServerListener;
 import com.github.dominik48n.party.bungee.listener.UpdateCheckerListener;
 import com.github.dominik48n.party.config.ProxyPluginConfig;
+import com.github.dominik48n.party.database.JPAService;
+import com.github.dominik48n.party.database.JPAServiceImpl;
 import com.github.dominik48n.party.redis.RedisManager;
 import com.github.dominik48n.party.util.UpdateChecker;
 import java.io.File;
@@ -41,6 +43,7 @@ public class PartyBungeePlugin extends Plugin {
 
     private @Nullable RedisManager redisManager = null;
     private @Nullable BungeeAudiences audiences = null;
+    private JPAService jpaService;
 
     @Override
     public void onEnable() {
@@ -69,6 +72,22 @@ public class PartyBungeePlugin extends Plugin {
             // If the code continued, there would be some problems at runtime, which is
             // why the plugin simply does not load completely when the error occurs here.
             return;
+        }
+
+        this.jpaService = JPAServiceImpl.fromConfig(this.config.getDatabaseConfig());
+        if (jpaService.isEnableFlyway()) {
+            getLogger().log(Level.INFO, "Start Flyway.");
+            if (jpaService.runFlyway()) {
+                getLogger().log(Level.INFO, "Flyway done.");
+            } else {
+                getLogger().log(Level.INFO, "Could not execute Flyway.");
+            }
+        }
+        getLogger().log(Level.INFO, "Start JPA.");
+        if (jpaService.startJPA()) {
+            getLogger().log(Level.INFO, "JPA started.");
+        } else {
+            getLogger().log(Level.INFO, "JPA could not be started.");
         }
 
         this.audiences = BungeeAudiences.create(this);
@@ -124,10 +143,22 @@ public class PartyBungeePlugin extends Plugin {
             this.getLogger().info("Close connection to redis...");
             this.redisManager.close();
         } else this.getLogger().warning("The connection to redis is not closed, because the redis manager is not initialized.");
+
+        if (this.jpaService != null) {
+            try {
+                this.jpaService.close();
+            } catch (IOException exception) {
+                this.getLogger().log(Level.SEVERE, "JPA run into an exception while closing.", exception);
+            }
+        } else this.getLogger().warning("JPA connection is not closed, because JPA is not initialized.");
     }
 
     public @NotNull ProxyPluginConfig config() {
         return this.config;
+    }
+
+    public @NotNull JPAService getJPAService() {
+        return this.jpaService;
     }
 
     public @NotNull RedisManager redisManager() {

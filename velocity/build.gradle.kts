@@ -19,6 +19,7 @@ dependencies {
     implementation(project(":api"))
     implementation("redis.clients:jedis:4.3.2")
     implementation("com.google.guava:guava:31.1-jre")
+    implementation("jakarta.persistence:jakarta.persistence-api:3.1.0")
 }
 
 tasks.shadowJar {
